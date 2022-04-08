@@ -14,10 +14,8 @@ RUN cargo build --release && rm ./src/*.rs ./target/release/deps/backend*
 # copy your source tree
 ADD . ./
 
-RUN ls
-
 # build for release
-RUN cargo build --release && ls target/release/backend -la
+RUN cargo build --release
 
 # our final base
 FROM debian:11-slim
