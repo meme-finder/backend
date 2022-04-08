@@ -5,7 +5,7 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Image {
     #[serde(default = "Uuid::new_v4")]
-    pub id: Uuid,
+    id: Uuid,
     name: String,
     link: String,
     //tags: Vec<String>,
