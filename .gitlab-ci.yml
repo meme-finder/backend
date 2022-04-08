@@ -1,0 +1,16 @@
+include:
+  - project: git-srv/pipelines
+    ref: main
+    file: Docker.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/License-Scanning.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/SAST-IaC.latest.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+stages:
+  - test
+  - build
+
+docker_build:
+  needs: []

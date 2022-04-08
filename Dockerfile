@@ -1,37 +1,29 @@
-FROM rust:1.59
-
-WORKDIR /usr/src/back
-COPY . .
-
-RUN cargo build --release
-
-CMD ["./target/release/back"]
-
 FROM rust:1.59 as build
 
 # create a new empty shell project
-RUN USER=root cargo new --bin back
-WORKDIR /back
+RUN USER=root cargo new --bin backend
+WORKDIR /backend
 
 # copy over your manifests
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
 
 # this build step will cache your dependencies
-RUN cargo build --release
-RUN rm src/*.rs
+RUN cargo build --release && rm ./src/*.rs ./target/release/deps/backend*
 
 # copy your source tree
-COPY . .
+ADD . ./
+
+RUN ls
 
 # build for release
-RUN cargo build --release
+RUN cargo build --release && ls target/release/backend -la
 
 # our final base
-FROM rust:1.59-slim-buster
+FROM debian:11-slim
 
 # copy the build artifact from the build stage
-COPY --from=build /back/target/release/back .
+COPY --from=build /backend/target/release/backend /usr/local/bin
 
 # set the startup command to run your binary
-CMD [ "./back" ]
+CMD [ "/usr/local/bin/backend" ]
