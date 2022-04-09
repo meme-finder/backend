@@ -15,7 +15,7 @@ mod model;
 lazy_static! {
     static ref CLIENT: Client = Client::new(
         "http://localhost:7700",
-        "changethiskey", //todo use env variable
+        "key", // todo use env variable
     );
 }
 
