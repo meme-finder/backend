@@ -2,14 +2,11 @@ use std::io;
 use actix_files::{Files, NamedFile};
 use actix_web::{
     get, post,
-    http::{
-        header,
-        Method, StatusCode,
-    },
+    http::{header, Method, StatusCode},
     middleware, web, App, Either, HttpRequest, HttpResponse, HttpServer, Responder, Result,
 };
 use lazy_static::lazy_static;
-use meilisearch_sdk::client::Client;
+use meilisearch_sdk::{client::Client};
 use meilisearch_sdk::indexes::Index;
 use meilisearch_sdk::settings::Settings;
 
@@ -22,24 +19,54 @@ lazy_static! {
     );
 }
 
+// fn convert_vec_string_to_str<'a>(x: Vec<String>) -> &'a [&'a str] {
+//     x.iter().map(|y| y.as_str()).collect::<Vec<_>>().as_slice()
+// }
+
+// fn convert_selectors<'a>(x: model::Selectors<Vec<String>>) -> search::Selectors<&'a [&'a str]> {
+//     match x {
+//         model::Selectors::Some(x) => search::Selectors::Some(convert_vec_string_to_str(x)),
+//         model::Selectors::All => search::Selectors::All,
+//     }
+// }
+
+// fn convert<'a>(x: model::Selectors<Vec<(String, Option<usize>)>>) -> search::Selectors<&'a [(&'a str, Option<usize>)]> {
+//     match x {
+//         model::Selectors::Some(x) => search::Selectors::Some(x.iter().map(|y| (y.0.as_str(), y.1)).collect::<Vec<_>>().as_slice()),
+//         model::Selectors::All => search::Selectors::All,
+//     }
+// }
+
 #[get("/images")]
-async fn get_images(query: web::Query<model::ImageSearch>) -> impl Responder {
-    /*let hits: Vec<_> = CLIENT
-        .index("images")
-        .search()
-        .with_query(&query.q)
-        .execute::<model::Image>()
-        .await.unwrap()
-        .hits;
-        
-    let images: Vec<model::Image> = hits.into_iter()
+async fn get_images(query: web::Query<model::Query>) -> impl Responder {
+    let q = query.0;
+
+    let images = CLIENT.index("images");
+    let mut s = images.search();
+
+    s.query = q.query.as_deref();
+    s.offset = q.offset;
+    s.limit = q.limit;
+    s.filter = q.filter.as_deref();
+    s.crop_length = q.crop_length;
+    s.matches = q.matches;
+    // s.sort = q.sort.map(convert_vec_string_to_str);
+    // s.facets_distribution = q.facets_distribution.map(convert_selectors);
+    // s.attributes_to_retrieve = q.attributes_to_retrieve.map(convert_selectors);
+    // s.attributes_to_highlight = q.attributes_to_highlight.map(convert_selectors);
+    // s.attributes_to_crop = q.attributes_to_crop.map(convert);
+
+    let search = s
+        .execute::<model::Image>().await.unwrap();
+    
+    let images: Vec<model::Image> = search.hits
+        .into_iter()
         .map(|x| x.result)
         .collect();
-    Uuid::default();
+    
     web::Json({
         images
-    })*/
-    "TODO"
+    })
 }
 
 #[post("/images")]
