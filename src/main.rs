@@ -1,14 +1,21 @@
-use std::io;
+#![warn(clippy::all)]
+#![warn(clippy::cargo)]
+#![warn(clippy::restriction)]
+#![allow(
+    clippy::missing_docs_in_private_items,
+    clippy::implicit_return,
+    clippy::expect_used,
+    clippy::exhaustive_structs,
+)]
+
 use actix_files::{Files, NamedFile};
-use actix_web::{
-    get, post,
-    http::{header, Method, StatusCode},
-    middleware, web, App, Either, HttpRequest, HttpResponse, HttpServer, Responder, Result,
-};
+use actix_web::*;
+use actix_web::http::*;
 use lazy_static::lazy_static;
-use meilisearch_sdk::{client::Client};
+use meilisearch_sdk::client::Client;
 use meilisearch_sdk::indexes::Index;
 use meilisearch_sdk::settings::Settings;
+use std::io;
 
 mod model;
 
@@ -41,8 +48,8 @@ lazy_static! {
 async fn get_images(query: web::Query<model::Query>) -> impl Responder {
     let q = query.0;
 
-    let images = CLIENT.index("images");
-    let mut s = images.search();
+    let index = CLIENT.index("images");
+    let mut s = index.search();
 
     s.query = q.query.as_deref();
     s.offset = q.offset;
@@ -56,17 +63,11 @@ async fn get_images(query: web::Query<model::Query>) -> impl Responder {
     // s.attributes_to_highlight = q.attributes_to_highlight.map(convert_selectors);
     // s.attributes_to_crop = q.attributes_to_crop.map(convert);
 
-    let search = s
-        .execute::<model::Image>().await.unwrap();
-    
-    let images: Vec<model::Image> = search.hits
-        .into_iter()
-        .map(|x| x.result)
-        .collect();
-    
-    web::Json({
-        images
-    })
+    let search = s.execute::<model::Image>().await.unwrap();
+
+    let images: Vec<model::Image> = search.hits.into_iter().map(|x| x.result).collect();
+
+    web::Json(images)
 }
 
 #[post("/images")]
@@ -104,13 +105,13 @@ async fn main() -> io::Result<()> {
             .expect("Could not join the remote server.")
             .try_make_index(&CLIENT)
             .expect("An error happened with the index creation.");
-        
+
         // https://docs.meilisearch.com/learn/configuration/settings.html#index-settings
-        let settings: Settings = Settings::new()
-            .with_searchable_attributes(["name"]);
+        let settings: Settings = Settings::new().with_searchable_attributes(["name"]);
         //    .with_filterable_attributes(["created_at"]);
 
-        index.set_settings(&settings)
+        index
+            .set_settings(&settings)
             .await
             .expect("Could not join the remote server.")
             .wait_for_completion(&CLIENT, None, None)

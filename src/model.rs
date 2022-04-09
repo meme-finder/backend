@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use meilisearch_sdk::document::*;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
