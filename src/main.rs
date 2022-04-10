@@ -24,8 +24,8 @@ mod model;
 
 lazy_static! {
     static ref CLIENT: Client = {
-        let meili_url = env::var("MEILI_URL").unwrap_or(String::from("http://localhost:7700"));
-        let meili_key = env::var("MEILI_MASTER_KEY").unwrap_or(String::from("key"));
+        let meili_url = env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
+        let meili_key = env::var("MEILI_MASTER_KEY").unwrap_or_else(|_| String::from("key"));
         Client::new(meili_url, meili_key)
     };
 }
