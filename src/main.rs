@@ -125,7 +125,7 @@ async fn main() -> io::Result<()> {
 
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-    log::info!("starting HTTP server at http://localhost:8080");
+    log::info!("starting HTTP server at http://[::]:8080");
 
     HttpServer::new(|| {
         App::new()
@@ -148,7 +148,7 @@ async fn main() -> io::Result<()> {
             .service(Files::new("/static", "static").show_files_listing())
             .default_service(web::to(default_handler))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("::", 8080))?
     .run()
     .await
 }
