@@ -7,7 +7,8 @@
     clippy::missing_docs_in_private_items,
     clippy::implicit_return,
     clippy::expect_used,
-    clippy::exhaustive_structs
+    clippy::exhaustive_structs,
+    clippy::shadow_reuse,
 )]
 
 use actix_cors::Cors;
@@ -74,6 +75,22 @@ async fn get_images(query: web::Query<model::Query>) -> impl Responder {
     let images: Vec<model::Image> = search.hits.into_iter().map(|x| x.result).collect();
 
     web::Json(images)
+}
+
+#[get("/images/{id}")]
+async fn get_image(id: web::Path<String>) -> impl Responder {
+    let id = uuid::Uuid::parse_str(&id.into_inner());
+    match id {
+        Ok(id) => {
+            let image = CLIENT.index("images").get_document::<model::Image>(id).await;
+
+            match image {
+                Ok(image) => Either::Left(web::Json(image)),
+                Err(_) => Either::Right(HttpResponse::NotFound()),
+            }
+        },
+        Err(_) => Either::Right(HttpResponse::NotFound()),
+    }
 }
 
 #[post("/images")]
@@ -158,6 +175,7 @@ async fn main() -> io::Result<()> {
             .service(Files::new("/static", "static").show_files_listing())
             .service(get_images)
             .service(post_images)
+            .service(get_image)
             .default_service(web::to(default_handler))
     })
     .bind(("::", 8080))?
