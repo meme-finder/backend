@@ -19,11 +19,6 @@ impl Document for Image {
     }
 }
 
-#[derive(Deserialize)]
-pub struct ImageSearch {
-    pub q: String,
-}
-
 #[derive(Debug, Clone, Deserialize)]
 pub enum Selectors<T> {
     Some(T),
