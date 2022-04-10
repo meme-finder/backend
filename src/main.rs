@@ -155,6 +155,8 @@ async fn main() -> io::Result<()> {
                 })),
             )
             .service(Files::new("/static", "static").show_files_listing())
+            .service(get_images)
+            .service(post_images)
             .default_service(web::to(default_handler))
     })
     .bind(("::", 8080))?
