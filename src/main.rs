@@ -150,6 +150,7 @@ async fn main() -> io::Result<()> {
         let cors = Cors::default()
             .allowed_origin("http://localhost:3000")
             .allowed_origin("http://localhost:8080")
+            .allowed_origin(&env::var("CORS_ORIGIN").unwrap_or_else(|_| String::from("https://ms.averyan.ru")))
             .allowed_methods(vec!["GET", "POST", "DELETE", "UPDATE"])
             .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
             .allowed_header(http::header::CONTENT_TYPE)
