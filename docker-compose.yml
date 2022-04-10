@@ -3,6 +3,6 @@ version: "3.7"
 services:
   meilisearch:
     image: getmeili/meilisearch
-    command: ./meilisearch --master-key=hsbxuw --no-analytics
+    command: ./meilisearch --master-key=key --no-analytics
     ports:
       - 7700:7700

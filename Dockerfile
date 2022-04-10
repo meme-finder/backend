@@ -1,4 +1,4 @@
-FROM rust:1.59 as build
+FROM rust:1.60 as build
 
 # create a new empty shell project
 RUN USER=root cargo new --bin backend
