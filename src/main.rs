@@ -7,24 +7,26 @@
     clippy::missing_docs_in_private_items,
     clippy::implicit_return,
     clippy::expect_used,
-    clippy::exhaustive_structs,
+    clippy::exhaustive_structs
 )]
 
+use actix_cors::Cors;
 use actix_files::{Files, NamedFile};
-use actix_web::*;
 use actix_web::http::*;
+use actix_web::*;
 use lazy_static::lazy_static;
 use meilisearch_sdk::client::Client;
 use meilisearch_sdk::indexes::Index;
 use meilisearch_sdk::settings::Settings;
-use std::io;
 use std::env;
+use std::io;
 
 mod model;
 
 lazy_static! {
     static ref CLIENT: Client = {
-        let meili_url = env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
+        let meili_url =
+            env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
         let meili_key = env::var("MEILI_MASTER_KEY").unwrap_or_else(|_| String::from("key"));
         Client::new(meili_url, meili_key)
     };
@@ -128,7 +130,14 @@ async fn main() -> io::Result<()> {
     log::info!("starting HTTP server at http://[::]:8080");
 
     HttpServer::new(|| {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000")
+            .allowed_methods(vec!["GET", "POST", "DELETE", "UPDATE"])
+            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+            .allowed_header(http::header::CONTENT_TYPE)
+            .max_age(3600);
         App::new()
+            .wrap(cors)
             .wrap(middleware::Logger::default())
             .service(
                 web::resource("/test").to(|req: HttpRequest| match *req.method() {

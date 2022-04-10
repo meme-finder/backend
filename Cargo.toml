@@ -7,6 +7,7 @@ edition = "2021"
 actix-web = "4.0.1"
 actix-files = "0.6.0"
 actix-session = "0.6.2"
+actix-cors = "0.6.1"
 
 async-stream = "0.3.3"
 env_logger = "0.9.0"
