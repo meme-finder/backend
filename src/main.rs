@@ -1,5 +1,5 @@
 #![warn(clippy::cargo)]
-#![warn(clippy::restriction)]
+#![allow(clippy::restriction)]
 #![allow(
     clippy::cargo_common_metadata,
     clippy::multiple_crate_versions,
@@ -27,8 +27,10 @@ mod model;
 lazy_static! {
     static ref CLIENT: Client = {
         let meili_url =
-            env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
-        let meili_key = env::var("MEILI_MASTER_KEY").unwrap_or_else(|_| String::from("key"));
+            env::var("MEILI_URL")
+            .unwrap_or_else(|_| String::from("http://localhost:7700"));
+        let meili_key = env::var("MEILI_MASTER_KEY")
+            .unwrap_or_else(|_| String::from("key"));
         Client::new(meili_url, meili_key)
     };
 }
@@ -90,6 +92,22 @@ async fn get_image(id: web::Path<String>) -> impl Responder {
             }
         },
         Err(_) => Either::Right(HttpResponse::NotFound()),
+    }
+}
+
+#[delete("/images/{id}")]
+async fn delete_image(id: web::Path<String>) -> impl Responder {
+    let id = uuid::Uuid::parse_str(&id.into_inner());
+    match id {
+        Ok(id) => {
+            let result = CLIENT.index("images").delete_document(id).await;
+
+            match result {
+                Ok(_) => HttpResponse::Ok(),
+                Err(_) => HttpResponse::NotFound(),
+            }
+        },
+        Err(_) => HttpResponse::NotFound(),
     }
 }
 
@@ -177,6 +195,7 @@ async fn main() -> io::Result<()> {
             .service(get_images)
             .service(post_images)
             .service(get_image)
+            .service(delete_image)
             .default_service(web::to(default_handler))
     })
     .bind(("::", 8080))?
