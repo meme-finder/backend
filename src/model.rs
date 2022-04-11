@@ -8,6 +8,7 @@ pub struct Image {
     id: Uuid,
     name: String,
     link: String,
+    #[serde(default)]
     description: String,
 }
 
