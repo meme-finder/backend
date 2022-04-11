@@ -1,6 +1,6 @@
+use meilisearch_sdk::document::Document;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use meilisearch_sdk::document::Document;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Image {
