@@ -35,24 +35,6 @@ lazy_static! {
     };
 }
 
-// fn convert_vec_string_to_str<'a>(x: Vec<String>) -> &'a [&'a str] {
-//     x.iter().map(|y| y.as_str()).collect::<Vec<_>>().as_slice()
-// }
-
-// fn convert_selectors<'a>(x: model::Selectors<Vec<String>>) -> search::Selectors<&'a [&'a str]> {
-//     match x {
-//         model::Selectors::Some(x) => search::Selectors::Some(convert_vec_string_to_str(x)),
-//         model::Selectors::All => search::Selectors::All,
-//     }
-// }
-
-// fn convert<'a>(x: model::Selectors<Vec<(String, Option<usize>)>>) -> search::Selectors<&'a [(&'a str, Option<usize>)]> {
-//     match x {
-//         model::Selectors::Some(x) => search::Selectors::Some(x.iter().map(|y| (y.0.as_str(), y.1)).collect::<Vec<_>>().as_slice()),
-//         model::Selectors::All => search::Selectors::All,
-//     }
-// }
-
 #[get("/images")]
 async fn get_images(query: web::Query<model::Query>) -> impl Responder {
     let q = query.0;
@@ -66,11 +48,6 @@ async fn get_images(query: web::Query<model::Query>) -> impl Responder {
     s.filter = q.filter.as_deref();
     s.crop_length = q.crop_length;
     s.matches = q.matches;
-    // s.sort = q.sort.map(convert_vec_string_to_str);
-    // s.facets_distribution = q.facets_distribution.map(convert_selectors);
-    // s.attributes_to_retrieve = q.attributes_to_retrieve.map(convert_selectors);
-    // s.attributes_to_highlight = q.attributes_to_highlight.map(convert_selectors);
-    // s.attributes_to_crop = q.attributes_to_crop.map(convert);
 
     let search = s.execute::<model::Image>().await.unwrap();
 
