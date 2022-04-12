@@ -1,8 +1,14 @@
+# Docker-compose - программа для управления
+# множеством Docker контейнеров
+
 version: "3.7"
 
 services:
   meilisearch:
+    # Скачивание готового контейнера Meilisearch
     image: getmeili/meilisearch
+    # Настройки для запуска
     command: ./meilisearch --master-key=key --no-analytics
+    # Настройки портов
     ports:
       - 7700:7700

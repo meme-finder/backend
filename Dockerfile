@@ -1,30 +1,41 @@
+# Docker - это программная платформа для быстрой
+# разработки, тестирования и развертывания приложений
+
+# Каждый этап сборки кешируется (сохраняется на будущее),
+# поэтому при каждой сборке проекта не нужно заново
+# компилировать зависимости
+
+# Docker собирает программы в "контейнеры"
+# и запускает их 
+
+# Скачивание образа для компиляции Rust
 FROM rust:1.60 as build
 
-# create a new empty shell project
+# Создание папки программы
 RUN USER=root cargo new --bin backend
 WORKDIR /backend
 
-# copy over your manifests
+# Копирование файлов с информацией о проекте
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
 
-# this build step will cache your dependencies
+# Компиляция зависимостей
 RUN cargo build --release && rm ./src/*.rs ./target/release/deps/backend*
 
-# copy your source tree
+# Копирование файлов с кодом
 ADD . ./
 
-# build for release
+# Компиляция программы
 RUN cargo build --release
 
-# our final base
+# Скачивание образа для запуска программы
 FROM debian:11-slim
 
 WORKDIR /app
 
-# copy the build artifact from the build stage
+# Копирование исполняемых файлов
 COPY --from=build /backend/target/release/backend /usr/local/bin
 COPY ./static /app/static
 
-# set the startup command to run your binary
+# Запуск программы
 CMD [ "/usr/local/bin/backend" ]

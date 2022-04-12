@@ -1,9 +1,18 @@
+// Импортирование различных
+// структур и пространств имён.
 use meilisearch_sdk::document::Document;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+// Автоматическая генерация кода для кодирования
+// и декодирования модели картинок
 #[derive(Serialize, Deserialize, Debug)]
+// Модель картинки, состоящая из:
+// уникального идентификатора, названия,
+// ссылки на картинку и описания
 pub struct Image {
+    // Если не задавать id картинки,
+    // то будет сгенерирован случайный
     #[serde(default = "Uuid::new_v4")]
     id: Uuid,
     name: String,
@@ -12,6 +21,9 @@ pub struct Image {
     description: String,
 }
 
+// Указание серверу Meilisearch, что для
+// различия картинок нужно использовать
+// уникальный идентификатор картинки
 impl Document for Image {
     type UIDType = Uuid;
 
@@ -20,8 +32,13 @@ impl Document for Image {
     }
 }
 
+// Автоматическая генерация кода
+// для декодирования модели запроса для поиска
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+// Запрос может состоять из:
+// описания текста, количество выводимых результатов (лимит),
+// фильтра и прочего
 pub struct Query {
     #[serde(rename = "q")]
     pub query: Option<String>,

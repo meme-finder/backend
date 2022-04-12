@@ -1,18 +1,30 @@
+# Cargo.toml - файл для указания
+# всех зависимостей проекта
+
+# Базовая информация о проекте и
+# версиях компилятора
 [package]
 name = "backend"
 version = "0.2.0"
 edition = "2021"
 
+# Зависимости проекта
 [dependencies]
+# ActixWeb - очень производительный
+# фреймворк для разработки веб-серверов 
 actix-web = "4.0.1"
 actix-files = "0.6.0"
 actix-session = "0.6.2"
 actix-cors = "0.6.1"
 
+# Зависимости для логирования
+# (для получения информации
+# о текущем состоянии системы)
 async-stream = "0.3.3"
 env_logger = "0.9.0"
 log = "0.4.16"
 
+# Зависимости для датабазы Meilisearch 
 meilisearch-sdk = "0.15.0"
 lazy_static = "1.4.0"
 serde = { version = "1.0.136", features = ["derive"] }
