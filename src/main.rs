@@ -107,7 +107,7 @@ async fn create_index() -> Result<(), Box<dyn Error>> {
         .try_make_index(&CLIENT)
         .expect("An error happened with the index creation.");
 
-    let settings: Settings = Settings::new().with_searchable_attributes(["name", "description"]);
+    let settings: Settings = Settings::new().with_searchable_attributes(["name", "description", "text"]);
 
     index
         .set_settings(&settings)
