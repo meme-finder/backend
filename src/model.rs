@@ -10,6 +10,8 @@ pub struct Image {
     link: String,
     #[serde(default)]
     description: String,
+    #[serde(default)]
+    text: String,
 }
 
 impl Document for Image {
