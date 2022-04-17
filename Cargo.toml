@@ -18,3 +18,5 @@ lazy_static = "1.4.0"
 serde = { version = "1.0.136", features = ["derive"] }
 
 uuid = { version = "0.8.2", features = ["serde", "v4"] }
+
+envconfig = "0.10.0"

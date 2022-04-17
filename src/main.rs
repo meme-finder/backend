@@ -25,13 +25,16 @@ use std::env;
 use std::error::Error;
 
 mod model;
+mod config;
+
 
 lazy_static! {
+    static ref CONFIG: config::Config = {
+        config::get_config()
+    };
+
     static ref CLIENT: Client = {
-        let meili_url =
-            env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
-        let meili_key = env::var("MEILI_MASTER_KEY").unwrap_or_else(|_| String::from("key"));
-        Client::new(meili_url, meili_key)
+        Client::new(&CONFIG.meili_url, &CONFIG.meili_key)
     };
 }
 
