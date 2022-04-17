@@ -20,11 +20,14 @@ RUN cargo build --release
 # our final base
 FROM debian:11-slim
 
-WORKDIR /app
+# Create and switch to a new user
+RUN useradd --create-home app
+WORKDIR /home/app
+USER app
 
 # copy the build artifact from the build stage
 COPY --from=build /backend/target/release/backend /usr/local/bin
-COPY ./static /app/static
+COPY ./static /home/app/static
 
 # set the startup command to run your binary
 CMD [ "/usr/local/bin/backend" ]
