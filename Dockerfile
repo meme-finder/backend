@@ -21,6 +21,12 @@ RUN cargo build --release
 FROM debian:11-slim
 
 WORKDIR /app
+HEALTHCHECK --interval=5s --timeout=10s --retries=3 CMD curl -sS 127.0.0.1:8080/health || exit 1
+
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # copy the build artifact from the build stage
 COPY --from=build /backend/target/release/backend /usr/local/bin
