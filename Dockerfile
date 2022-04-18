@@ -24,7 +24,6 @@ FROM debian:11-slim
 RUN useradd --create-home app
 WORKDIR /home/app
 USER app
-WORKDIR /app
 
 # Healthcheck
 HEALTHCHECK --interval=5s --timeout=10s --retries=3 CMD curl -sS 127.0.0.1:8080/health || exit 1
