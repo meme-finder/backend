@@ -17,23 +17,22 @@ use actix_files::{Files, NamedFile};
 use actix_web::http::*;
 use actix_web::middleware::Logger;
 use actix_web::*;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use meilisearch_sdk::client::Client;
 use meilisearch_sdk::indexes::Index;
 use meilisearch_sdk::settings::Settings;
 use std::env;
 use std::error::Error;
+use anyhow; // todo
 
 mod model;
 
-lazy_static! {
-    static ref CLIENT: Client = {
-        let meili_url =
-            env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
-        let meili_key = env::var("MEILI_MASTER_KEY").unwrap_or_else(|_| String::from("key"));
-        Client::new(meili_url, meili_key)
-    };
-}
+static CLIENT: Lazy<Client> = Lazy::new(|| {
+    let meili_url =
+        env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
+    let meili_key = env::var("MEILI_MASTER_KEY").unwrap_or_else(|_| String::from("key"));
+    Client::new(meili_url, meili_key)
+});
 
 #[get("/images")]
 async fn get_images(query: web::Query<model::Query>) -> Result<impl Responder, Box<dyn Error>> {
@@ -107,7 +106,8 @@ async fn create_index() -> Result<(), Box<dyn Error>> {
         .try_make_index(&CLIENT)
         .expect("An error happened with the index creation.");
 
-    let settings: Settings = Settings::new().with_searchable_attributes(["name", "description", "text"]);
+    let settings: Settings =
+        Settings::new().with_searchable_attributes(["name", "description", "text"]);
 
     index
         .set_settings(&settings)
@@ -133,7 +133,7 @@ fn create_cors() -> Cors {
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     if !CLIENT.is_healthy().await {
-        Err("Could not join the remote server.")?
+        return Err("Could not join the remote server".into())
     }
 
     if CLIENT.get_index("images").await.is_err() {
