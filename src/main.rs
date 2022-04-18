@@ -25,6 +25,7 @@ use std::env;
 use std::error::Error;
 
 mod model;
+mod converter;
 
 lazy_static! {
     static ref CLIENT: Client = {
