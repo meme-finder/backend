@@ -406,6 +406,7 @@ dependencies = [
  "meilisearch-sdk",
  "once_cell",
  "serde",
+ "serde_json",
  "uuid",
 ]
 

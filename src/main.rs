@@ -34,6 +34,11 @@ static CLIENT: Lazy<Client> = Lazy::new(|| {
     Client::new(meili_url, meili_key)
 });
 
+#[get("/health")]
+async fn get_health() -> Result<impl Responder> {
+    Ok(HttpResponse::Ok().json(serde_json::json!({ "status": "available" })))
+}
+
 #[get("/images")]
 async fn get_images(query: web::Query<model::Query>) -> Result<impl Responder, Box<dyn Error>> {
     let q = query.0;
