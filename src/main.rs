@@ -29,6 +29,7 @@ use std::error::Error; // TODO
 // TODO: use anyhow
 
 mod model;
+mod converter;
 
 static CLIENT: Lazy<Client> = Lazy::new(|| {
     let meili_url = env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
