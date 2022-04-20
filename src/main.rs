@@ -17,19 +17,21 @@ use actix_files::{Files, NamedFile};
 use actix_web::http::*;
 use actix_web::middleware::Logger;
 use actix_web::*;
-use once_cell::sync::Lazy;
+
 use meilisearch_sdk::client::Client;
 use meilisearch_sdk::indexes::Index;
 use meilisearch_sdk::settings::Settings;
+
+use once_cell::sync::Lazy;
 use std::env;
-use std::error::Error;
-use anyhow; // todo
+use std::error::Error; // TODO
+
+// TODO: use anyhow
 
 mod model;
 
 static CLIENT: Lazy<Client> = Lazy::new(|| {
-    let meili_url =
-        env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
+    let meili_url = env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
     let meili_key = env::var("MEILI_MASTER_KEY").unwrap_or_else(|_| String::from("key"));
     Client::new(meili_url, meili_key)
 });
@@ -138,7 +140,7 @@ fn create_cors() -> Cors {
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     if !CLIENT.is_healthy().await {
-        return Err("Could not join the remote server".into())
+        return Err("Could not join the remote server".into());
     }
 
     if CLIENT.get_index("images").await.is_err() {
