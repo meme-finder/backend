@@ -1,5 +1,6 @@
 use image::io::Reader as ImageReader;
 use image::EncodableLayout;
+use std::error::Error;
 use std::io::Cursor;
 use webp::Encoder as WebPEncoder;
 
@@ -9,25 +10,21 @@ pub struct ConvertedImages {
     pub jpeg: Vec<u8>,
 }
 
-pub fn convert(original_bytes: Vec<u8>) -> ConvertedImages {
+pub fn convert(original_bytes: Vec<u8>) -> Result<ConvertedImages, Box<dyn Error>> {
     let img = ImageReader::new(Cursor::new(original_bytes))
-        .with_guessed_format()
-        .expect("cringe")
-        .decode()
-        .expect("cringe");
+        .with_guessed_format()?
+        .decode()?;
 
     let mut png: Vec<u8> = Vec::new();
-    img.write_to(&mut Cursor::new(&mut png), image::ImageOutputFormat::Png)
-        .expect("png");
+    img.write_to(&mut Cursor::new(&mut png), image::ImageOutputFormat::Png)?;
 
     let mut jpeg: Vec<u8> = Vec::new();
     img.write_to(
         &mut Cursor::new(&mut jpeg),
         image::ImageOutputFormat::Jpeg(80),
-    )
-    .expect("jpeg");
+    )?;
 
-    let webp_encoder = WebPEncoder::from_image(&img).expect("webp encoder");
+    let webp_encoder = WebPEncoder::from_image(&img)?;
     let encoded_webp = webp_encoder.encode(65f32);
 
     let webp: Vec<u8> = encoded_webp.as_bytes().to_vec();
@@ -37,5 +34,5 @@ pub fn convert(original_bytes: Vec<u8>) -> ConvertedImages {
         jpeg: jpeg,
         webp: webp,
     };
-    converted_images
+    Ok(converted_images)
 }
