@@ -13,8 +13,7 @@
 )]
 
 use actix_cors::Cors;
-use actix_files::{Files, NamedFile};
-use actix_web::http::*;
+use actix_files::Files;
 use actix_web::middleware::Logger;
 use actix_web::*;
 
@@ -109,16 +108,6 @@ async fn post_image(
     Ok(HttpResponse::Ok())
 }
 
-async fn default_handler(req_method: Method) -> Result<impl Responder> {
-    match req_method {
-        Method::GET => {
-            let file = NamedFile::open("static/404.html")?.set_status_code(StatusCode::NOT_FOUND);
-            Ok(Either::Left(file))
-        }
-        _ => Ok(Either::Right(HttpResponse::MethodNotAllowed())),
-    }
-}
-
 async fn create_index() -> Result<(), Box<dyn Error>> {
     let index: Index = CLIENT
         .create_index("images", Some("id"))
@@ -175,12 +164,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "/static/images",
                 env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")),
             ))
-            .service(Files::new("/static", "static").show_files_listing())
             .service(get_images)
             .service(post_image)
             .service(get_image)
             .service(delete_image)
-            .default_service(web::to(default_handler))
     })
     .bind(("::", 8080))?
     .run()
