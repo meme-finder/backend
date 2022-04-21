@@ -24,7 +24,8 @@ use meilisearch_sdk::settings::Settings;
 
 use once_cell::sync::Lazy;
 use std::env;
-use std::error::Error; // TODO
+use std::error::Error;
+use std::fs::create_dir_all; // TODO
 
 // TODO: use anyhow
 
@@ -154,6 +155,8 @@ fn create_cors() -> Cors {
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    create_dir_all(env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")))?;
+
     if !CLIENT.is_healthy().await {
         return Err("Could not join the remote server".into());
     }
