@@ -28,8 +28,9 @@ use std::error::Error; // TODO
 
 // TODO: use anyhow
 
-mod model;
 mod converter;
+mod model;
+mod storage;
 
 static CLIENT: Lazy<Client> = Lazy::new(|| {
     let meili_url = env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
@@ -56,9 +57,9 @@ async fn get_images(query: web::Query<model::Query>) -> Result<impl Responder, B
     s.crop_length = q.crop_length;
     s.matches = q.matches;
 
-    let search = s.execute::<model::Image>().await?;
+    let search = s.execute::<model::ImageInfo>().await?;
 
-    let images: Vec<model::Image> = search.hits.into_iter().map(|x| x.result).collect();
+    let images: Vec<model::ImageInfo> = search.hits.into_iter().map(|x| x.result).collect();
 
     Ok(web::Json(images))
 }
@@ -68,7 +69,7 @@ async fn get_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn Erro
     let id = uuid::Uuid::parse_str(&id.into_inner())?;
     let image = CLIENT
         .index("images")
-        .get_document::<model::Image>(id)
+        .get_document::<model::ImageInfo>(id)
         .await?;
     Ok(web::Json(image))
 }
@@ -86,10 +87,23 @@ async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn E
 }
 
 #[post("/images")]
-async fn post_image(image: web::Form<model::Image>) -> Result<impl Responder, Box<dyn Error>> {
+async fn post_image(
+    image: web::Json<model::ImageCreationRequest>,
+) -> Result<impl Responder, Box<dyn Error>> {
+    let converted = converter::convert(image.0.image).await?;
+
+    let image_info = model::ImageInfo {
+        id: uuid::Uuid::new_v4(),
+        name: image.0.name,
+        description: image.0.description,
+        text: image.0.text,
+    };
+
+    storage::save_images(image_info.id, converted).await?;
+
     CLIENT
         .index("images")
-        .add_documents(&[image.0], Some("id"))
+        .add_documents(&[image_info], Some("id"))
         .await?;
 
     Ok(HttpResponse::Ok())
@@ -157,6 +171,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         App::new()
             .wrap(cors)
             .wrap(Logger::default())
+            .service(Files::new(
+                "/static/images",
+                env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")),
+            ))
             .service(Files::new("/static", "static").show_files_listing())
             .service(get_images)
             .service(post_image)
