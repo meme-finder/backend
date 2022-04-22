@@ -12,6 +12,7 @@ base64_serde_type!(Base64Standard, STANDARD);
 pub struct ImageInfo {
     #[serde(default = "Uuid::new_v4")]
     pub id: Uuid,
+    #[serde(default)]
     pub name: String,
     #[serde(default)]
     pub description: String,
@@ -29,6 +30,7 @@ impl Document for ImageInfo {
 
 #[derive(Deserialize)]
 pub struct ImageCreationRequest {
+    #[serde(default)]
     pub name: String,
     #[serde(default)]
     pub description: String,
