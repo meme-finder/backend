@@ -90,11 +90,13 @@ async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn E
 #[post("/images")]
 async fn post_image(
     image: web::Json<model::ImageCreationRequest>,
-) -> Result<impl Responder, Box<dyn Error>> {
+) -> Result<web::Json<model::ImageInfo>, Box<dyn Error>> {
     let converted = converter::convert_and_resize(image.0.image).await?;
 
+    let id = uuid::Uuid::new_v4();
+
     let image_info = model::ImageInfo {
-        id: uuid::Uuid::new_v4(),
+        id: id,
         name: image.0.name,
         description: image.0.description,
         text: image.0.text,
@@ -104,10 +106,10 @@ async fn post_image(
 
     CLIENT
         .index("images")
-        .add_documents(&[image_info], Some("id"))
+        .add_documents(&[image_info.clone()], Some("id"))
         .await?;
 
-    Ok(HttpResponse::Ok())
+    Ok(web::Json(image_info))
 }
 
 async fn default_handler(req_method: Method) -> Result<impl Responder> {
