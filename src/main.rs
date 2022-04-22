@@ -91,7 +91,7 @@ async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn E
 async fn post_image(
     image: web::Json<model::ImageCreationRequest>,
 ) -> Result<impl Responder, Box<dyn Error>> {
-    let converted = converter::convert(image.0.image).await?;
+    let converted = converter::convert_and_resize(image.0.image).await?;
 
     let image_info = model::ImageInfo {
         id: uuid::Uuid::new_v4(),
