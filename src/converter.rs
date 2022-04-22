@@ -51,8 +51,16 @@ pub async fn convert_and_resize(original_bytes: Vec<u8>) -> Result<ImagesVersion
             .decode()?;
 
         // Create minified versions
-        let img_preview = img_full.resize(256, 256, Lanczos3);
-        let img_normal = img_full.resize(1024, 1024, Lanczos3);
+        let mut img_normal = img_full.clone();
+        let mut img_preview = img_full.clone();
+
+        if img_full.width() > 256 || img_full.height() > 256 {
+            img_preview = img_full.resize(256, 256, Lanczos3);
+        }
+
+        if img_full.width() > 1024 || img_full.height() > 1024 {
+            img_normal = img_full.resize(1024, 1024, Lanczos3);
+        }
 
         // Convert images
         let full = convert_image(&img_full)?;
