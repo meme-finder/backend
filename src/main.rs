@@ -181,6 +181,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")),
             ))
             .service(Files::new("/static", "static").show_files_listing())
+            .service(get_health)
             .service(get_images)
             .service(post_image)
             .service(get_image)
