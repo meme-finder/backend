@@ -39,8 +39,19 @@ static CLIENT: Lazy<Client> = Lazy::new(|| {
 });
 
 #[get("/health")]
-async fn get_health() -> Result<impl Responder> {
-    Ok(HttpResponse::Ok().json(serde_json::json!({ "status": "available" })))
+async fn get_health() -> Result<web::Json<models::Health>> {
+    let health = if CLIENT.is_healthy().await {
+        models::Health {
+            status: String::from("available"),
+            errors: String::from(""),
+        }
+    } else {
+        models::Health {
+            status: String::from("unavailable"),
+            errors: String::from("Can't connect to meilisearch"),
+        }
+    };
+    Ok(web::Json(health))
 }
 
 #[get("/images")]
@@ -169,6 +180,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 "/static/images",
                 env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")),
             ))
+            .service(get_health)
             .service(get_images)
             .service(post_image)
             .service(get_image)

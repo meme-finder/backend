@@ -51,3 +51,9 @@ pub struct Query {
     pub crop_length: Option<usize>,
     pub matches: Option<bool>,
 }
+
+#[derive(Serialize)]
+pub struct Health {
+    pub status: String,
+    pub errors: String,
+}
