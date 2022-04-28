@@ -29,15 +29,15 @@ fn convert_image(img: &DynamicImage) -> Result<ConvertedImages, Box<dyn Error>> 
         image::ImageOutputFormat::Jpeg(80),
     )?;
 
-    let webp_encoder = WebPEncoder::from_image(&img)?;
+    let webp_encoder = WebPEncoder::from_image(img)?;
     let encoded_webp = webp_encoder.encode(65f32);
 
     let webp: Vec<u8> = encoded_webp.as_bytes().to_vec();
 
     let converted_images = ConvertedImages {
-        png: png,
-        jpeg: jpeg,
-        webp: webp,
+        png,
+        jpeg,
+        webp,
     };
     Ok(converted_images)
 }
@@ -68,9 +68,9 @@ pub async fn convert_and_resize(original_bytes: Vec<u8>) -> Result<ImagesVersion
         let preview = convert_image(&img_preview)?;
 
         let images_versions = ImagesVersions {
-            full: full,
-            normal: normal,
-            preview: preview,
+            full,
+            normal,
+            preview,
             original: original_bytes,
         };
         Ok(images_versions)
