@@ -1,16 +1,18 @@
 use base64_serde::base64_serde_type;
 use meilisearch_sdk::document::Document;
 use serde::{Deserialize, Serialize};
+use std::clone::Clone;
 use uuid::Uuid;
 
 // TODO: normal bytes decoder, not this workaround cringe
 use base64::STANDARD;
 base64_serde_type!(Base64Standard, STANDARD);
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ImageInfo {
     #[serde(default = "Uuid::new_v4")]
     pub id: Uuid,
+    #[serde(default)]
     pub name: String,
     #[serde(default)]
     pub description: String,
@@ -28,6 +30,7 @@ impl Document for ImageInfo {
 
 #[derive(Deserialize)]
 pub struct ImageCreationRequest {
+    #[serde(default)]
     pub name: String,
     #[serde(default)]
     pub description: String,

@@ -23,12 +23,13 @@ use meilisearch_sdk::settings::Settings;
 
 use once_cell::sync::Lazy;
 use std::env;
-use std::error::Error; // TODO
+use std::error::Error;
+use std::fs::create_dir_all; // TODO
 
 // TODO: use anyhow
 
 mod converter;
-mod model;
+mod models;
 mod storage;
 
 static CLIENT: Lazy<Client> = Lazy::new(|| {
@@ -43,7 +44,7 @@ async fn get_health() -> Result<impl Responder> {
 }
 
 #[get("/images")]
-async fn get_images(query: web::Query<model::Query>) -> Result<impl Responder, Box<dyn Error>> {
+async fn get_images(query: web::Query<models::Query>) -> Result<impl Responder, Box<dyn Error>> {
     let q = query.0;
 
     let index = CLIENT.index("images");
@@ -56,9 +57,9 @@ async fn get_images(query: web::Query<model::Query>) -> Result<impl Responder, B
     s.crop_length = q.crop_length;
     s.matches = q.matches;
 
-    let search = s.execute::<model::ImageInfo>().await?;
+    let search = s.execute::<models::ImageInfo>().await?;
 
-    let images: Vec<model::ImageInfo> = search.hits.into_iter().map(|x| x.result).collect();
+    let images: Vec<models::ImageInfo> = search.hits.into_iter().map(|x| x.result).collect();
 
     Ok(web::Json(images))
 }
@@ -68,7 +69,7 @@ async fn get_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn Erro
     let id = uuid::Uuid::parse_str(&id.into_inner())?;
     let image = CLIENT
         .index("images")
-        .get_document::<model::ImageInfo>(id)
+        .get_document::<models::ImageInfo>(id)
         .await?;
     Ok(web::Json(image))
 }
@@ -87,12 +88,14 @@ async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn E
 
 #[post("/images")]
 async fn post_image(
-    image: web::Json<model::ImageCreationRequest>,
-) -> Result<impl Responder, Box<dyn Error>> {
-    let converted = converter::convert(image.0.image).await?;
+    image: web::Json<models::ImageCreationRequest>,
+) -> Result<web::Json<models::ImageInfo>, Box<dyn Error>> {
+    let converted = converter::convert_and_resize(image.0.image).await?;
 
-    let image_info = model::ImageInfo {
-        id: uuid::Uuid::new_v4(),
+    let id = uuid::Uuid::new_v4();
+
+    let image_info = models::ImageInfo {
+        id,
         name: image.0.name,
         description: image.0.description,
         text: image.0.text,
@@ -102,10 +105,10 @@ async fn post_image(
 
     CLIENT
         .index("images")
-        .add_documents(&[image_info], Some("id"))
+        .add_documents(&[image_info.clone()], Some("id"))
         .await?;
 
-    Ok(HttpResponse::Ok())
+    Ok(web::Json(image_info))
 }
 
 async fn create_index() -> Result<(), Box<dyn Error>> {
@@ -143,6 +146,8 @@ fn create_cors() -> Cors {
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    create_dir_all(env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")))?;
+
     if !CLIENT.is_healthy().await {
         return Err("Could not join the remote server".into());
     }
