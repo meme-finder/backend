@@ -1,15 +1,7 @@
 #![warn(clippy::cargo)]
-// #![warn(clippy::restriction)]
 #![allow(
     clippy::cargo_common_metadata,
     clippy::multiple_crate_versions,
-//     clippy::blanket_clippy_restriction_lints,
-//     clippy::missing_docs_in_private_items,
-//     clippy::implicit_return,
-//     clippy::expect_used,
-//     clippy::exhaustive_structs,
-//     clippy::shadow_reuse,
-//     clippy::try_err
 )]
 
 use actix_cors::Cors;
