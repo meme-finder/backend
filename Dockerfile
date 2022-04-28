@@ -36,7 +36,6 @@ USER app
 
 # copy the build artifact from the build stage
 COPY --from=build /backend/target/release/backend /usr/local/bin
-COPY ./static /home/app/static
 
 # set the startup command to run your binary
 CMD [ "/usr/local/bin/backend" ]
