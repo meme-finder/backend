@@ -47,7 +47,7 @@ async fn get_health() -> Result<web::Json<models::Health>> {
 }
 
 #[get("/images")]
-async fn get_images(query: web::Query<models::Query>) -> Result<impl Responder, Box<dyn Error>> {
+async fn search_images(query: web::Query<models::Query>) -> Result<impl Responder, Box<dyn Error>> {
     let q = query.0;
 
     let index = CLIENT.index("images");
@@ -173,7 +173,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")),
             ))
             .service(get_health)
-            .service(get_images)
+            .service(search_images)
             .service(post_image)
             .service(get_image)
             .service(delete_image)
