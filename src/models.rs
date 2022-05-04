@@ -1,5 +1,4 @@
 use base64_serde::base64_serde_type;
-use meilisearch_sdk::document::Document;
 use serde::{Deserialize, Serialize};
 use std::clone::Clone;
 use uuid::Uuid;
@@ -10,34 +9,21 @@ base64_serde_type!(Base64Standard, STANDARD);
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ImageInfo {
-    #[serde(default = "Uuid::new_v4")]
     pub id: Uuid,
-    #[serde(default)]
     pub name: String,
-    #[serde(default)]
-    pub description: String,
-    #[serde(default)]
-    pub text: String,
-}
-
-impl Document for ImageInfo {
-    type UIDType = Uuid;
-
-    fn get_uid(&self) -> &Self::UIDType {
-        &self.id
-    }
+    pub description: Option<String>,
+    pub text: Option<String>,
+    pub tags: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
 pub struct ImageCreationRequest {
-    #[serde(default)]
     pub name: String,
-    #[serde(default)]
-    pub description: String,
-    #[serde(default)]
-    pub text: String,
     #[serde(with = "Base64Standard")]
     pub image: Vec<u8>,
+    pub description: Option<String>,
+    pub text: Option<String>,
+    pub tags: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -50,10 +36,4 @@ pub struct Query {
     pub filter: Option<String>,
     pub crop_length: Option<usize>,
     pub matches: Option<bool>,
-}
-
-#[derive(Serialize)]
-pub struct Health {
-    pub status: String,
-    pub errors: String,
 }
