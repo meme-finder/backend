@@ -34,11 +34,7 @@ fn convert_image(img: &DynamicImage) -> Result<ConvertedImages, Box<dyn Error>> 
 
     let webp: Vec<u8> = encoded_webp.as_bytes().to_vec();
 
-    let converted_images = ConvertedImages {
-        png,
-        jpeg,
-        webp,
-    };
+    let converted_images = ConvertedImages { png, jpeg, webp };
     Ok(converted_images)
 }
 

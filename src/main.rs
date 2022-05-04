@@ -1,22 +1,20 @@
 #![warn(clippy::cargo)]
-#![allow(
-    clippy::cargo_common_metadata,
-    clippy::multiple_crate_versions,
-)]
+#![allow(clippy::cargo_common_metadata, clippy::multiple_crate_versions)]
 
 use actix_cors::Cors;
 use actix_files::Files;
 use actix_web::middleware::Logger;
-use actix_web::*;
+use actix_web::{delete, get, http, post, web, App, HttpResponse, HttpServer, Responder};
 
 use meilisearch_sdk::client::Client;
+use meilisearch_sdk::errors::{Error::Meilisearch, ErrorCode::IndexNotFound, MeilisearchError};
 use meilisearch_sdk::indexes::Index;
 use meilisearch_sdk::settings::Settings;
 
 use once_cell::sync::Lazy;
 use std::env;
 use std::error::Error;
-use std::fs::create_dir_all; // TODO
+use std::fs::create_dir_all;
 
 // TODO: use anyhow
 
@@ -31,19 +29,11 @@ static CLIENT: Lazy<Client> = Lazy::new(|| {
 });
 
 #[get("/health")]
-async fn get_health() -> Result<web::Json<models::Health>> {
-    let health = if CLIENT.is_healthy().await {
-        models::Health {
-            status: String::from("available"),
-            errors: String::from(""),
-        }
-    } else {
-        models::Health {
-            status: String::from("unavailable"),
-            errors: String::from("Can't connect to meilisearch"),
-        }
-    };
-    Ok(web::Json(health))
+async fn get_health() -> Result<impl Responder, Box<dyn Error>> {
+    match CLIENT.health().await {
+        Ok(_) => Ok("available"),
+        Err(error) => Err(error.into()),
+    }
 }
 
 #[get("/images")]
@@ -69,10 +59,9 @@ async fn search_images(query: web::Query<models::Query>) -> Result<impl Responde
 
 #[get("/images/{id}")]
 async fn get_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn Error>> {
-    let id = uuid::Uuid::parse_str(&id.into_inner())?;
     let image = CLIENT
         .index("images")
-        .get_document::<models::ImageInfo>(id)
+        .get_document::<models::ImageInfo>(&id.into_inner())
         .await?;
     Ok(web::Json(image))
 }
@@ -92,7 +81,7 @@ async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn E
 #[post("/images")]
 async fn post_image(
     image: web::Json<models::ImageCreationRequest>,
-) -> Result<web::Json<models::ImageInfo>, Box<dyn Error>> {
+) -> Result<impl Responder, Box<dyn Error>> {
     let converted = converter::convert_and_resize(image.0.image).await?;
 
     let id = uuid::Uuid::new_v4();
@@ -102,6 +91,7 @@ async fn post_image(
         name: image.0.name,
         description: image.0.description,
         text: image.0.text,
+        tags: image.0.tags,
     };
 
     storage::save_images(image_info.id, converted).await?;
@@ -123,8 +113,9 @@ async fn create_index() -> Result<(), Box<dyn Error>> {
         .try_make_index(&CLIENT)
         .expect("An error happened with the index creation.");
 
-    let settings: Settings =
-        Settings::new().with_searchable_attributes(["name", "description", "text"]);
+    let settings: Settings = Settings::new()
+        .with_searchable_attributes(["name", "description", "text", "tags"])
+        .with_filterable_attributes(["tags"]);
 
     index
         .set_settings(&settings)
@@ -149,17 +140,22 @@ fn create_cors() -> Cors {
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
     create_dir_all(env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")))?;
 
-    if !CLIENT.is_healthy().await {
-        return Err("Could not join the remote server".into());
-    }
+    CLIENT.health().await?;
 
-    if CLIENT.get_index("images").await.is_err() {
-        create_index().await?
-    }
-
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    match CLIENT.get_index("images").await {
+        Err(Meilisearch(MeilisearchError {
+            error_code: IndexNotFound,
+            ..
+        })) => {
+            create_index().await?;
+        }
+        Err(error) => return Err(error.into()),
+        _ => {}
+    };
 
     log::info!("starting HTTP server at http://[::]:8080");
 
