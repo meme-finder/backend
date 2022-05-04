@@ -86,6 +86,7 @@ async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn E
         .await?
         .wait_for_completion(&CLIENT, None, None)
         .await?;
+    storage::remove_images(id).await?;
     Ok(HttpResponse::Ok())
 }
 

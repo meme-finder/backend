@@ -1,7 +1,7 @@
 use actix_web::rt::spawn;
 use std::env;
 use std::error::Error;
-use std::fs::{create_dir_all, File};
+use std::fs::{create_dir_all, remove_dir_all, remove_file, read_dir, File};
 use std::io::prelude::*;
 
 use crate::converter;
@@ -23,6 +23,30 @@ async fn async_create_dir_all(path: String) -> Result<(), Box<dyn Error>> {
     })
     .await?
 }
+
+async fn async_remove_dir_all(path: String) -> Result<(), Box<dyn Error>> {
+    spawn(async {
+        remove_dir_all(path)?;
+        Ok(())
+    })
+    .await?
+}
+
+async fn async_remove_file(path: String) -> Result<(), Box<dyn Error>> {
+    spawn(async {
+        remove_file(path)?;
+        Ok(())
+    })
+    .await?
+}
+
+// async fn async_read_dir(path: String) -> Result<(), Box<dyn Error>> {
+//     spawn(async {
+//         let res = read_dir(path)?;
+//         Ok(res)
+//     })
+//     .await?
+// }
 
 pub async fn save_images(
     uuid: uuid::Uuid,
@@ -73,5 +97,27 @@ pub async fn save_images(
 
     async_create_dir_all(format!("{base}/original/{path}")).await?;
     write_to_file(format!("{base}/original/{path}/{id}"), images.original).await?;
+    Ok(())
+}
+
+pub async fn remove_images(uuid: uuid::Uuid) -> Result<(), Box<dyn Error>> {
+    let id = uuid.to_string();
+    let path = format!("{}/{}", &id[..2], &id[2..4]);
+    let base = env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images"));
+
+    async_remove_file(format!("{base}/full/{path}/{id}.webp")).await?;
+    async_remove_file(format!("{base}/full/{path}/{id}.jpeg")).await?;
+    async_remove_file(format!("{base}/full/{path}/{id}.png")).await?;
+
+    async_remove_file(format!("{base}/normal/{path}/{id}.webp")).await?;
+    async_remove_file(format!("{base}/normal/{path}/{id}.jpeg")).await?;
+    async_remove_file(format!("{base}/normal/{path}/{id}.png")).await?;
+
+    async_remove_file(format!("{base}/preview/{path}/{id}.webp")).await?;
+    async_remove_file(format!("{base}/preview/{path}/{id}.jpeg")).await?;
+    async_remove_file(format!("{base}/preview/{path}/{id}.png")).await?;
+
+    async_remove_file(format!("{base}/original/{path}/{id}")).await?;
+    // TODO: remove empty dirs
     Ok(())
 }
