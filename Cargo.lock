@@ -377,6 +377,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "backend"
+version = "0.2.0"
+dependencies = [
+ "actix-cors",
+ "actix-files",
+ "actix-session",
+ "actix-web",
+ "anyhow",
+ "base64",
+ "base64-serde",
+ "env_logger",
+ "image",
+ "log",
+ "meilisearch-sdk",
+ "once_cell",
+ "serde",
+ "uuid",
+ "webp",
+]
+
+[[package]]
 name = "base64"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1311,27 +1332,6 @@ name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
-
-[[package]]
-name = "memefinder-backend"
-version = "0.2.0"
-dependencies = [
- "actix-cors",
- "actix-files",
- "actix-session",
- "actix-web",
- "anyhow",
- "base64",
- "base64-serde",
- "env_logger",
- "image",
- "log",
- "meilisearch-sdk",
- "once_cell",
- "serde",
- "uuid",
- "webp",
-]
 
 [[package]]
 name = "memoffset"
