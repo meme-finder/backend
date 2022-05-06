@@ -10,10 +10,22 @@ base64_serde_type!(Base64Standard, STANDARD);
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ImageInfo {
     pub id: Uuid,
-    pub name: String,
+    pub name: Option<String>,
     pub description: Option<String>,
     pub text: Option<String>,
     pub tags: Option<Vec<String>>,
+}
+
+impl ImageInfo {
+    pub fn new() -> ImageInfo {
+        ImageInfo {
+            id: Uuid::new_v4(),
+            name: None,
+            description: None,
+            text: None,
+            tags: None,
+        }
+    }
 }
 
 #[derive(Deserialize)]
