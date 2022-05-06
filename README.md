@@ -1,4 +1,4 @@
-# Meme Search Backend
+# Meme Finder Backend
 ![Pipeline](https://git.averyan.ru/meme-finder/backend/badges/main/pipeline.svg)
 
-Backend for Meme Search written in Rust
+Backend for Meme Finder written in Rust
