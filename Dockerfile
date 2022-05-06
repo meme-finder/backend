@@ -1,18 +1,18 @@
 FROM rust:1.60 as build
 
 # create a new empty shell project
-RUN USER=root cargo new --bin backend
-WORKDIR /backend
+RUN USER=root cargo new --bin memefinder-backend
+WORKDIR /memefinder-backend
 
 # copy over your manifests
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
 
 # this build step will cache your dependencies
-RUN cargo build --release && rm ./src/*.rs ./target/release/deps/backend*
+RUN cargo build --release && rm ./src/*.rs ./target/release/deps/memefinder-backend*
 
 # copy your source tree
-ADD . ./
+COPY . ./
 
 # build for release
 RUN cargo build --release
@@ -35,7 +35,7 @@ RUN apt-get update && \
 USER app
 
 # copy the build artifact from the build stage
-COPY --from=build /backend/target/release/backend /usr/local/bin
+COPY --from=build /backend/target/release/memefinder-backend /usr/local/bin
 
 # set the startup command to run your binary
-CMD [ "/usr/local/bin/backend" ]
+CMD [ "/usr/local/bin/memefinder-backend" ]
