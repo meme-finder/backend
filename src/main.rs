@@ -2,7 +2,6 @@
 #![allow(clippy::cargo_common_metadata, clippy::multiple_crate_versions)]
 
 use actix_cors::Cors;
-use actix_files::Files;
 use actix_web::middleware::Logger;
 use actix_web::{delete, get, http, post, web, App, HttpResponse, HttpServer, Responder};
 
@@ -164,10 +163,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         App::new()
             .wrap(cors)
             .wrap(Logger::default())
-            .service(Files::new(
-                "/static/images",
-                env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")),
-            ))
             .service(get_health)
             .service(search_images)
             .service(post_image)
