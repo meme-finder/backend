@@ -12,6 +12,11 @@ environment:
   CORS_ORIGIN: https://memefinder.ru # additional allowed cors origin
   IMAGES_DIR: /data/images # directory for persistance image storage
 ```
+### Development environment
+If you have docker-compose installed, you can start meilisearch by 1 command:
+```bash
+docker-compose up -d
+```
 
 ### API Requests:
 ```bash
