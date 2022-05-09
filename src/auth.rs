@@ -2,9 +2,9 @@ use actix_web::cookie::Cookie;
 use actix_web::error::ErrorUnauthorized;
 use actix_web::Error as ActixError;
 use actix_web::{dev::Payload, FromRequest, HttpRequest, HttpResponse};
-use actix_web::{post, web, Responder};
+use actix_web::{post, get, web, Responder};
 
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
 use std::env;
 use std::error::Error;
@@ -37,7 +37,12 @@ async fn login(login_request: web::Json<LoginRequest>) -> Result<impl Responder,
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[get("/account")]
+async fn account_info(auth_data: AuthData) -> Result<impl Responder, Box<dyn Error>> {
+    Ok(web::Json(auth_data))
+}
+
+#[derive(Serialize)]
 pub struct AuthData {
     pub admin: bool,
 }

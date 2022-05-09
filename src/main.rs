@@ -5,9 +5,7 @@ use actix_cors::Cors;
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
 use actix_web::middleware::Logger;
-use actix_web::{
-    delete, get, http, post, put, web, App, HttpResponse, HttpServer, Responder,
-};
+use actix_web::{delete, get, http, post, put, web, App, HttpResponse, HttpServer, Responder};
 
 use futures_util::TryStreamExt;
 use meilisearch_sdk::client::Client;
@@ -197,6 +195,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .service(delete_image)
             .service(update_image)
             .service(auth::login)
+            .service(auth::account_info)
     })
     .bind(("::", 8080))?
     .run()
