@@ -90,8 +90,6 @@ async fn post_image(mut payload: Multipart, _: auth::NeedAuth) -> Result<impl Re
         // let content_disposition = field.content_disposition();
 
         if let Some(chunk) = field.try_next().await? {
-            // TODO: filesystem operations are blocking
-            //f = web::block(move || ).await??;
             let converted = converter::convert_and_resize(chunk.to_vec()).await?;
 
             let image_info = models::ImageInfo::new();
