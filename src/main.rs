@@ -3,9 +3,11 @@
 
 use actix_cors::Cors;
 use actix_multipart::Multipart;
-use actix_web::middleware::Logger;
 use actix_web::error::ErrorBadRequest;
-use actix_web::{delete, get, http, post, put, web, App, HttpResponse, HttpServer, Responder, Either};
+use actix_web::middleware::Logger;
+use actix_web::{
+    delete, get, http, post, put, web, App, Either, HttpResponse, HttpServer, Responder,
+};
 
 use futures_util::TryStreamExt;
 use meilisearch_sdk::client::Client;
@@ -85,7 +87,10 @@ async fn delete_image(
 }
 
 #[post("/images")]
-async fn post_image(mut payload: Multipart, _: auth::NeedAuth) -> Result<impl Responder, Box<dyn Error>> {
+async fn post_image(
+    mut payload: Multipart,
+    _: auth::NeedAuth,
+) -> Result<impl Responder, Box<dyn Error>> {
     // TODO: check that file is an image
     if let Some(mut field) = payload.try_next().await? {
         // let content_disposition = field.content_disposition();
@@ -110,9 +115,15 @@ async fn post_image(mut payload: Multipart, _: auth::NeedAuth) -> Result<impl Re
 }
 
 #[put("/images/{id}")]
-async fn update_image(image: web::Path<models::ImageInfo>) -> Result<impl Responder, Box<dyn Error>> {
+async fn update_image(
+    image: web::Path<models::ImageInfo>,
+    _: auth::NeedAuth,
+) -> Result<impl Responder, Box<dyn Error>> {
     // TODO: don't add document if it doesn't exist
-    CLIENT.index("images").add_or_update(&[image.into_inner()], Some("id")).await?;
+    CLIENT
+        .index("images")
+        .add_or_update(&[image.into_inner()], Some("id"))
+        .await?;
     Ok(HttpResponse::Ok())
 }
 
