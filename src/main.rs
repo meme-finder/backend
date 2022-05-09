@@ -2,7 +2,6 @@
 #![allow(clippy::cargo_common_metadata, clippy::multiple_crate_versions)]
 
 use actix_cors::Cors;
-use actix_files::Files;
 use actix_multipart::Multipart;
 use actix_web::middleware::Logger;
 use actix_web::{delete, get, http, post, put, web, App, HttpResponse, HttpServer, Responder, Either};
@@ -20,6 +19,7 @@ use std::fs::create_dir_all;
 
 // TODO: use anyhow
 
+mod auth;
 mod converter;
 mod models;
 mod storage;
@@ -69,7 +69,10 @@ async fn get_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn Erro
 }
 
 #[delete("/images/{id}")]
-async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn Error>> {
+async fn delete_image(
+    id: web::Path<String>,
+    _: auth::NeedAuth,
+) -> Result<impl Responder, Box<dyn Error>> {
     let id = uuid::Uuid::parse_str(&id.into_inner())?;
     CLIENT
         .index("images")
@@ -81,7 +84,7 @@ async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn E
 }
 
 #[post("/images")]
-async fn post_image(mut payload: Multipart) -> Result<impl Responder, Box<dyn Error>> {
+async fn post_image(mut payload: Multipart, _: auth::NeedAuth) -> Result<impl Responder, Box<dyn Error>> {
     // TODO: check that file is an image
     if let Some(mut field) = payload.try_next().await? {
         // let content_disposition = field.content_disposition();
@@ -140,7 +143,7 @@ fn create_cors() -> Cors {
         .allowed_origin("http://localhost:3000")
         .allowed_origin("http://localhost:8080")
         .allowed_origin(
-            &env::var("CORS_ORIGIN").unwrap_or_else(|_| String::from("https://ms.averyan.ru")),
+            &env::var("CORS_ORIGIN").unwrap_or_else(|_| String::from("https://memefinder.ru")),
         )
         .allowed_methods(vec!["GET", "POST", "DELETE", "UPDATE"])
         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
@@ -174,16 +177,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         App::new()
             .wrap(cors)
             .wrap(Logger::default())
-            .service(Files::new(
-                "/static/images",
-                env::var("IMAGES_DIR").unwrap_or_else(|_| String::from("./storage/images")),
-            ))
             .service(get_health)
             .service(search_images)
             .service(post_image)
             .service(get_image)
             .service(delete_image)
             .service(update_image)
+            .service(auth::login)
     })
     .bind(("::", 8080))?
     .run()

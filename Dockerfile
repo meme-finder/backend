@@ -12,7 +12,7 @@ COPY ./Cargo.toml ./Cargo.toml
 RUN cargo build --release && rm ./src/*.rs ./target/release/deps/backend*
 
 # copy your source tree
-ADD . ./
+COPY . ./
 
 # build for release
 RUN cargo build --release
@@ -21,8 +21,8 @@ RUN cargo build --release
 FROM debian:11-slim
 
 # Create new user
-RUN useradd --create-home app
-WORKDIR /home/app
+RUN useradd --create-home backend
+WORKDIR /home/backend
 
 # Healthcheck
 HEALTHCHECK --interval=5s --timeout=10s --retries=3 CMD curl -sS 127.0.0.1:8080/health || exit 1
@@ -32,7 +32,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Switch user
-USER app
+USER backend
 
 # copy the build artifact from the build stage
 COPY --from=build /backend/target/release/backend /usr/local/bin
