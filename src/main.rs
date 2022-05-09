@@ -17,6 +17,7 @@ use std::fs::create_dir_all;
 
 // TODO: use anyhow
 
+mod auth;
 mod converter;
 mod models;
 mod storage;
@@ -66,7 +67,10 @@ async fn get_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn Erro
 }
 
 #[delete("/images/{id}")]
-async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn Error>> {
+async fn delete_image(
+    id: web::Path<String>,
+    _: auth::NeedAuth,
+) -> Result<impl Responder, Box<dyn Error>> {
     let id = uuid::Uuid::parse_str(&id.into_inner())?;
     CLIENT
         .index("images")
@@ -80,6 +84,7 @@ async fn delete_image(id: web::Path<String>) -> Result<impl Responder, Box<dyn E
 #[post("/images")]
 async fn post_image(
     image: web::Json<models::ImageCreationRequest>,
+    _: auth::NeedAuth,
 ) -> Result<impl Responder, Box<dyn Error>> {
     let converted = converter::convert_and_resize(image.0.image).await?;
 
@@ -168,6 +173,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .service(post_image)
             .service(get_image)
             .service(delete_image)
+            .service(auth::login)
     })
     .bind(("::", 8080))?
     .run()
