@@ -6,7 +6,7 @@ use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
 use actix_web::middleware::Logger;
 use actix_web::{
-    delete, get, http, post, put, web, App, Either, HttpResponse, HttpServer, Responder,
+    delete, get, http, post, put, web, App, HttpResponse, HttpServer, Responder,
 };
 
 use futures_util::TryStreamExt;
@@ -95,20 +95,23 @@ async fn post_image(
     if let Some(mut field) = payload.try_next().await? {
         // let content_disposition = field.content_disposition();
 
-        if let Some(chunk) = field.try_next().await? {
-            let converted = converter::convert_and_resize(chunk.to_vec()).await?;
-
-            let image_info = models::ImageInfo::new();
-
-            storage::save_images(image_info.id, converted).await?;
-
-            CLIENT
-                .index("images")
-                .add_documents(&[&image_info], Some("id"))
-                .await?;
-
-            return Ok(web::Json(image_info));
+        let mut v = vec![];
+        while let Some(chunk) = field.try_next().await? {
+            v.extend_from_slice(&chunk);
         }
+
+        let converted = converter::convert_and_resize(v.into()).await?;
+
+        let image_info = models::ImageInfo::new();
+
+        storage::save_images(image_info.id, converted).await?;
+
+        CLIENT
+            .index("images")
+            .add_documents(&[&image_info], Some("id"))
+            .await?;
+
+        return Ok(web::Json(image_info));
     }
 
     Err(ErrorBadRequest("please provide image").into())

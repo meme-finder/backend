@@ -1,4 +1,5 @@
 use actix_web::rt::spawn;
+use actix_web::web::Bytes;
 use std::env;
 use std::error::Error;
 use std::fs::{create_dir_all, File};
@@ -6,7 +7,7 @@ use std::io::prelude::*;
 
 use crate::converter;
 
-async fn write_to_file(name: String, content: Vec<u8>) -> Result<(), Box<dyn Error>> {
+async fn write_to_file(name: String, content: Bytes) -> Result<(), Box<dyn Error>> {
     spawn(async {
         let mut file = File::create(name)?;
         let content = content;
@@ -48,11 +49,7 @@ pub async fn save_images(
         images.normal.jpeg,
     )
     .await?;
-    write_to_file(
-        format!("{base}/normal/{path}/{id}.png"),
-        images.normal.png,
-    )
-    .await?;
+    write_to_file(format!("{base}/normal/{path}/{id}.png"), images.normal.png).await?;
 
     async_create_dir_all(format!("{base}/preview/{path}")).await?;
     write_to_file(
