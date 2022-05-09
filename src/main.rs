@@ -2,9 +2,12 @@
 #![allow(clippy::cargo_common_metadata, clippy::multiple_crate_versions)]
 
 use actix_cors::Cors;
+use actix_multipart::Multipart;
 use actix_web::middleware::Logger;
-use actix_web::{delete, get, http, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::error::ErrorBadRequest;
+use actix_web::{delete, get, http, post, put, web, App, HttpResponse, HttpServer, Responder, Either};
 
+use futures_util::TryStreamExt;
 use meilisearch_sdk::client::Client;
 use meilisearch_sdk::errors::{Error::Meilisearch, ErrorCode::IndexNotFound, MeilisearchError};
 use meilisearch_sdk::indexes::Index;
@@ -82,30 +85,35 @@ async fn delete_image(
 }
 
 #[post("/images")]
-async fn post_image(
-    image: web::Json<models::ImageCreationRequest>,
-    _: auth::NeedAuth,
-) -> Result<impl Responder, Box<dyn Error>> {
-    let converted = converter::convert_and_resize(image.0.image).await?;
+async fn post_image(mut payload: Multipart, _: auth::NeedAuth) -> Result<impl Responder, Box<dyn Error>> {
+    // TODO: check that file is an image
+    if let Some(mut field) = payload.try_next().await? {
+        // let content_disposition = field.content_disposition();
 
-    let id = uuid::Uuid::new_v4();
+        if let Some(chunk) = field.try_next().await? {
+            let converted = converter::convert_and_resize(chunk.to_vec()).await?;
 
-    let image_info = models::ImageInfo {
-        id,
-        name: image.0.name,
-        description: image.0.description,
-        text: image.0.text,
-        tags: image.0.tags,
-    };
+            let image_info = models::ImageInfo::new();
 
-    storage::save_images(image_info.id, converted).await?;
+            storage::save_images(image_info.id, converted).await?;
 
-    CLIENT
-        .index("images")
-        .add_documents(&[image_info.clone()], Some("id"))
-        .await?;
+            CLIENT
+                .index("images")
+                .add_documents(&[&image_info], Some("id"))
+                .await?;
 
-    Ok(web::Json(image_info))
+            return Ok(web::Json(image_info));
+        }
+    }
+
+    Err(ErrorBadRequest("please provide image").into())
+}
+
+#[put("/images/{id}")]
+async fn update_image(image: web::Path<models::ImageInfo>) -> Result<impl Responder, Box<dyn Error>> {
+    // TODO: don't add document if it doesn't exist
+    CLIENT.index("images").add_or_update(&[image.into_inner()], Some("id")).await?;
+    Ok(HttpResponse::Ok())
 }
 
 async fn create_index() -> Result<(), Box<dyn Error>> {
@@ -173,6 +181,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .service(post_image)
             .service(get_image)
             .service(delete_image)
+            .service(update_image)
             .service(auth::login)
     })
     .bind(("::", 8080))?
