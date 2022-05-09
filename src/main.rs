@@ -4,6 +4,7 @@
 use actix_cors::Cors;
 use actix_multipart::Multipart;
 use actix_web::middleware::Logger;
+use actix_web::error::ErrorBadRequest;
 use actix_web::{delete, get, http, post, put, web, App, HttpResponse, HttpServer, Responder, Either};
 
 use futures_util::TryStreamExt;
@@ -101,11 +102,11 @@ async fn post_image(mut payload: Multipart, _: auth::NeedAuth) -> Result<impl Re
                 .add_documents(&[&image_info], Some("id"))
                 .await?;
 
-            return Ok(Either::Left(web::Json(image_info)));
+            return Ok(web::Json(image_info));
         }
     }
 
-    Ok(Either::Right(HttpResponse::BadRequest()))
+    Err(ErrorBadRequest("please provide image").into())
 }
 
 #[put("/images/{id}")]
