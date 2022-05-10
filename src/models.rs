@@ -7,13 +7,21 @@ use uuid::Uuid;
 use base64::STANDARD;
 base64_serde_type!(Base64Standard, STANDARD);
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize)]
+pub enum Status {
+    Published,
+    Draft,
+    Offered,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct ImageInfo {
     pub id: Uuid,
     pub name: Option<String>,
     pub description: Option<String>,
     pub text: Option<String>,
     pub tags: Option<Vec<String>>,
+    pub status: Status
 }
 
 impl ImageInfo {
@@ -24,6 +32,7 @@ impl ImageInfo {
             description: None,
             text: None,
             tags: None,
+            status: Status::Draft,
         }
     }
 }

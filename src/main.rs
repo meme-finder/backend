@@ -3,7 +3,6 @@
 
 use actix_cors::Cors;
 use actix_multipart::Multipart;
-use actix_web::error::ErrorBadRequest;
 use actix_web::middleware::Logger;
 use actix_web::{delete, get, http, post, put, web, App, HttpResponse, HttpServer, Responder};
 
@@ -140,8 +139,8 @@ async fn create_index() -> Result<(), Box<dyn Error>> {
         .expect("An error happened with the index creation.");
 
     let settings: Settings = Settings::new()
-        .with_searchable_attributes(["name", "description", "text", "tags"])
-        .with_filterable_attributes(["tags"]);
+        .with_searchable_attributes(["name", "description", "text"])
+        .with_filterable_attributes(["tags", "status"]);
 
     index
         .set_settings(&settings)
