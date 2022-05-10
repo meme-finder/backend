@@ -1,6 +1,5 @@
 use base64_serde::base64_serde_type;
 use serde::{Deserialize, Serialize};
-use std::clone::Clone;
 use uuid::Uuid;
 
 // TODO: normal bytes decoder, not this workaround cringe
@@ -21,7 +20,7 @@ pub struct ImageInfo {
     pub description: Option<String>,
     pub text: Option<String>,
     pub tags: Option<Vec<String>>,
-    pub status: Status
+    pub status: Status,
 }
 
 impl ImageInfo {

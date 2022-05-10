@@ -16,13 +16,20 @@ use once_cell::sync::Lazy;
 use std::env;
 use std::error::Error;
 use std::fs::create_dir_all;
-
 // TODO: use anyhow
 
 mod auth;
 mod converter;
 mod models;
 mod storage;
+
+static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
+    reqwest::Client::builder()
+        .build()
+        .expect("Can't initialize reqwest client")
+});
+
+static TEXT_RECOGNIZER_URL: Lazy<String> = Lazy::new(|| env::var("TEXT_RECOGNIZER_URL").unwrap());
 
 static CLIENT: Lazy<Client> = Lazy::new(|| {
     let meili_url = env::var("MEILI_URL").unwrap_or_else(|_| String::from("http://localhost:7700"));
@@ -84,6 +91,16 @@ async fn delete_image(
     Ok(HttpResponse::Ok())
 }
 
+async fn text_recognize(bytes: &[u8]) -> Result<String, Box<dyn Error>> {
+    Ok(REQWEST_CLIENT
+        .get(TEXT_RECOGNIZER_URL.as_str())
+        .form(bytes)
+        .send()
+        .await?
+        .text()
+        .await?)
+}
+
 #[post("/images")]
 async fn post_image(
     mut payload: Multipart,
@@ -101,7 +118,11 @@ async fn post_image(
 
         let converted = converter::convert_and_resize(bytes).await?;
 
-        let image_info = models::ImageInfo::new();
+        let mut image_info = models::ImageInfo::new();
+
+        // TODO: join two await
+
+        image_info.text = text_recognize(&converted.full.webp).await.ok();
 
         storage::save_images(image_info.id, converted).await?;
 
