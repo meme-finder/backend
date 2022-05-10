@@ -1,6 +1,5 @@
 use base64_serde::base64_serde_type;
 use serde::{Deserialize, Serialize};
-use std::clone::Clone;
 use uuid::Uuid;
 
 // TODO: normal bytes decoder, not this workaround cringe
