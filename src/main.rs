@@ -91,10 +91,11 @@ async fn post_image(
     _: auth::NeedAuth,
 ) -> Result<impl Responder, Box<dyn Error>> {
     // TODO: check that file is an image
-    if let Some(mut field) = payload.try_next().await? {
+    let mut images_info: Vec<models::ImageInfo> = Vec::new();
+    while let Some(mut field) = payload.try_next().await? {
         // let content_disposition = field.content_disposition();
 
-        let mut v = vec![];
+        let mut v: Vec<u8> = Vec::new();
         while let Some(chunk) = field.try_next().await? {
             v.extend_from_slice(&chunk);
         }
@@ -110,10 +111,10 @@ async fn post_image(
             .add_documents(&[&image_info], Some("id"))
             .await?;
 
-        return Ok(web::Json(image_info));
+        images_info.push(image_info);
     }
 
-    Err(ErrorBadRequest("please provide image").into())
+    Ok(web::Json(images_info))
 }
 
 #[put("/images/{id}")]
