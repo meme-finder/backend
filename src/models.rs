@@ -20,7 +20,7 @@ pub struct ImageInfo {
     pub description: Option<String>,
     pub text: Option<String>,
     pub tags: Option<Vec<String>>,
-    pub status: Status
+    pub status: Status,
 }
 
 impl ImageInfo {
