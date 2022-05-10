@@ -81,6 +81,7 @@ async fn delete_image(
         .await?
         .wait_for_completion(&CLIENT, None, None)
         .await?;
+    storage::remove_images(id).await?;
     Ok(HttpResponse::Ok())
 }
 
