@@ -2,9 +2,9 @@ use actix_web::cookie::Cookie;
 use actix_web::error::ErrorUnauthorized;
 use actix_web::Error as ActixError;
 use actix_web::{dev::Payload, FromRequest, HttpRequest, HttpResponse};
-use actix_web::{post, get, web, Responder};
+use actix_web::{get, post, web, Responder};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use std::env;
 use std::error::Error;

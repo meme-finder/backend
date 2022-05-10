@@ -1,5 +1,4 @@
 use actix_web::rt::spawn;
-use actix_web::web::Bytes;
 use image::imageops::Lanczos3;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, EncodableLayout};
@@ -8,22 +7,16 @@ use std::io::Cursor;
 use webp::Encoder as WebPEncoder;
 
 pub struct ConvertedImages {
-    pub png: Bytes,
-    pub webp: Bytes,
-    pub jpeg: Bytes,
-}
-
-impl ConvertedImages {
-    pub fn new(png: Bytes, webp: Bytes, jpeg: Bytes) -> ConvertedImages {
-        ConvertedImages { png, jpeg, webp }
-    }
+    pub png: Vec<u8>,
+    pub webp: Vec<u8>,
+    pub jpeg: Vec<u8>,
 }
 
 pub struct ImagesVersions {
     pub full: ConvertedImages,
     pub normal: ConvertedImages,
     pub preview: ConvertedImages,
-    pub original: Bytes,
+    pub original: Vec<u8>,
 }
 
 fn convert_image(img: &DynamicImage) -> Result<ConvertedImages, Box<dyn Error>> {
@@ -41,11 +34,11 @@ fn convert_image(img: &DynamicImage) -> Result<ConvertedImages, Box<dyn Error>> 
 
     let webp: Vec<u8> = encoded_webp.as_bytes().to_vec();
 
-    let converted_images = ConvertedImages::new(png.into(), jpeg.into(), webp.into());
+    let converted_images = ConvertedImages { png, jpeg, webp };
     Ok(converted_images)
 }
 
-pub async fn convert_and_resize(original_bytes: Bytes) -> Result<ImagesVersions, Box<dyn Error>> {
+pub async fn convert_and_resize(original_bytes: Vec<u8>) -> Result<ImagesVersions, Box<dyn Error>> {
     spawn(async {
         let original_bytes = original_bytes;
         // Decode original image

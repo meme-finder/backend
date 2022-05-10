@@ -95,12 +95,12 @@ async fn post_image(
     while let Some(mut field) = payload.try_next().await? {
         // let content_disposition = field.content_disposition();
 
-        let mut v: Vec<u8> = Vec::new();
+        let mut bytes: Vec<u8> = Vec::new();
         while let Some(chunk) = field.try_next().await? {
-            v.extend_from_slice(&chunk);
+            bytes.extend_from_slice(&chunk);
         }
 
-        let converted = converter::convert_and_resize(v.into()).await?;
+        let converted = converter::convert_and_resize(bytes).await?;
 
         let image_info = models::ImageInfo::new();
 

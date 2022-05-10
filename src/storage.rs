@@ -1,13 +1,12 @@
 use actix_web::rt::spawn;
-use actix_web::web::Bytes;
 use std::env;
 use std::error::Error;
-use std::fs::{create_dir_all, remove_dir_all, remove_file, read_dir, File};
+use std::fs::{create_dir_all, remove_dir_all, remove_file, File};
 use std::io::prelude::*;
 
 use crate::converter;
 
-async fn write_to_file(name: String, content: Bytes) -> Result<(), Box<dyn Error>> {
+async fn write_to_file(name: String, content: Vec<u8>) -> Result<(), Box<dyn Error>> {
     spawn(async {
         let mut file = File::create(name)?;
         let content = content;
