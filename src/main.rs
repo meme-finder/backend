@@ -140,11 +140,12 @@ async fn post_image(
 #[put("/images/{id}")]
 async fn update_image(
     id: web::Path<String>,
-    mut image: web::Path<models::ImageInfo>,
+    mut image: web::Json<models::ImageUpdateRequest>,
     _: auth::NeedAuth,
 ) -> Result<impl Responder, Box<dyn Error>> {
     // TODO: don't add document if it doesn't exist
-    image.id = uuid::Uuid::parse_str(id.as_str())?;
+    image.id = uuid::Uuid::parse_str(id.as_str())?.into();
+    // TODO: don't reset not provided fields
     CLIENT
         .index("images")
         .add_or_update(&[image.into_inner()], Some("id"))

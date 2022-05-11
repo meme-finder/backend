@@ -20,7 +20,8 @@ pub struct ImageInfo {
     pub description: Option<String>,
     pub text: Option<String>,
     pub tags: Option<Vec<String>>,
-    pub status: Status,
+    // TODO: remove Option from status
+    pub status: Option<Status>,
 }
 
 impl ImageInfo {
@@ -31,19 +32,19 @@ impl ImageInfo {
             description: None,
             text: None,
             tags: None,
-            status: Status::Draft,
+            status: Status::Draft.into(),
         }
     }
 }
 
-#[derive(Deserialize)]
-pub struct ImageCreationRequest {
-    pub name: String,
-    #[serde(with = "Base64Standard")]
-    pub image: Vec<u8>,
+#[derive(Deserialize, Serialize)]
+pub struct ImageUpdateRequest {
+    pub id: Option<Uuid>,
+    pub name: Option<String>,
     pub description: Option<String>,
     pub text: Option<String>,
     pub tags: Option<Vec<String>>,
+    pub status: Option<Status>,
 }
 
 #[derive(Deserialize)]
