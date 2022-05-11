@@ -178,7 +178,7 @@ fn create_cors() -> Cors {
         .allowed_origin(
             &env::var("CORS_ORIGIN").unwrap_or_else(|_| String::from("https://memefinder.ru")),
         )
-        .allowed_methods(vec!["GET", "POST", "DELETE", "UPDATE"])
+        .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "UPDATE"])
         .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
         .allowed_header(http::header::CONTENT_TYPE)
         .max_age(3600)
