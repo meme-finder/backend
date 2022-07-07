@@ -1,7 +1,7 @@
 use actix_web::rt::spawn;
 use std::env;
 use std::error::Error;
-use std::fs::{create_dir_all, remove_dir_all, remove_file, File};
+use std::fs::{create_dir_all, remove_file, File};
 use std::io::prelude::*;
 
 use crate::converter;
@@ -24,13 +24,13 @@ async fn async_create_dir_all(path: String) -> Result<(), Box<dyn Error>> {
     .await?
 }
 
-async fn async_remove_dir_all(path: String) -> Result<(), Box<dyn Error>> {
-    spawn(async {
-        remove_dir_all(path)?;
-        Ok(())
-    })
-    .await?
-}
+// async fn async_remove_dir_all(path: String) -> Result<(), Box<dyn Error>> {
+//     spawn(async {
+//         remove_dir_all(path)?;
+//         Ok(())
+//     })
+//     .await?
+// }
 
 async fn async_remove_file(path: String) -> Result<(), Box<dyn Error>> {
     spawn(async {

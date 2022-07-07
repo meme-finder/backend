@@ -1,3 +1,4 @@
+use actix_web::cookie::time::Duration;
 use actix_web::cookie::Cookie;
 use actix_web::error::ErrorUnauthorized;
 use actix_web::Error as ActixError;
@@ -27,9 +28,10 @@ async fn login(login_request: web::Json<LoginRequest>) -> Result<impl Responder,
                 .as_str(),
         )?;
         let auth_cookie = Cookie::build("auth", login_request.0.token)
-            .path("/")
+            .path("/api")
             .secure(cookie_secure)
             .http_only(true)
+            .max_age(Duration::days(365))
             .finish();
         Ok(HttpResponse::Ok().cookie(auth_cookie).finish())
     } else {
