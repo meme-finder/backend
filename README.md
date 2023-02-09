@@ -1,5 +1,4 @@
 # Meme Finder Backend 🚀
-![Pipeline](https://git.averyan.ru/meme-finder/backend/badges/main/pipeline.svg)
 ![License](https://img.shields.io/github/license/meme-finder/backend)
 
 Backend for Meme Finder written in Rust
